@@ -28,14 +28,13 @@ fn str_to_char(val: &str) -> Option<char> {
 }
 
 fn get_single_digit(val: &str) -> Option<char> {
+    if val.is_empty() {
+        return None;
+    }
     match str_to_char(val) {
         Some(c) => Some(c),
         None => {
-            if val.is_empty() {
-                None
-            } else {
-                get_single_digit(&val[1..])
-            }
+            get_single_digit(&val[1..])
         }
     }
 }
@@ -44,8 +43,10 @@ fn get_value(val: &str) -> i32 {
     let first = get_single_digit(val).unwrap();
     let mut sub = &val[1..];
     let mut last = first;
-    while let Some(next) = get_single_digit(sub) {
-        last = next;
+    while !sub.is_empty() {
+        if let Some(c) = str_to_char(sub){
+            last = c;
+        }
         sub = &sub[1..];
     }
     format!("{first}{last}").parse().unwrap()
