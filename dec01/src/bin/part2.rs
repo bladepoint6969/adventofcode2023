@@ -33,9 +33,7 @@ fn get_single_digit(val: &str) -> Option<char> {
     }
     match str_to_char(val) {
         Some(c) => Some(c),
-        None => {
-            get_single_digit(&val[1..])
-        }
+        None => get_single_digit(&val[1..]),
     }
 }
 
@@ -44,7 +42,7 @@ fn get_value(val: &str) -> i32 {
     let mut sub = &val[1..];
     let mut last = first;
     while !sub.is_empty() {
-        if let Some(c) = str_to_char(sub){
+        if let Some(c) = str_to_char(sub) {
             last = c;
         }
         sub = &sub[1..];
