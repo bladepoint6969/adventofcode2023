@@ -6,24 +6,11 @@ struct Card {
 impl Card {
     fn new(input: &str) -> Self {
         let mut nums = input.split(':').last().unwrap().split('|');
-        let winning_numbers: Vec<i32> = nums
-            .next()
-            .unwrap()
-            .split(' ')
-            .filter_map(|e| match e.parse() {
-                Ok(num) => Some(num),
-                Err(_) => None,
-            })
-            .collect();
-        let my_numbers: Vec<i32> = nums
-            .next()
-            .unwrap()
-            .split(' ')
-            .filter_map(|e| match e.parse() {
-                Ok(num) => Some(num),
-                Err(_) => None,
-            })
-            .collect();
+
+        let winning_numbers: Vec<i32> = parse_num_list(nums.next().unwrap());
+
+        let my_numbers: Vec<i32> = parse_num_list(nums.next().unwrap());
+
         Self {
             winning_numbers,
             my_numbers,
@@ -46,6 +33,16 @@ impl Card {
             2_i32.pow(my_wins as u32 - 1)
         }
     }
+}
+
+fn parse_num_list(input: &str) -> Vec<i32> {
+    input
+        .split(' ')
+        .filter_map(|e| match e.parse() {
+            Ok(num) => Some(num),
+            Err(_) => None,
+        })
+        .collect()
 }
 
 pub fn part1(input: &str) {
