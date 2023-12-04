@@ -60,10 +60,10 @@ pub fn part2(input: &str) {
     for i in 0..cards.len() {
         let card = cards.get(i).unwrap();
         let card_copies = copies.get(i).unwrap().to_owned();
-        let mut matches = card.matches();
-        while matches > 0 {
-            copies[i + matches] += card_copies;
-            matches -= 1;
+        let matches = card.matches();
+
+        for match_num in 1..=matches {
+            copies[i + match_num] += card_copies
         }
     }
     let total: usize = copies.iter().sum();
