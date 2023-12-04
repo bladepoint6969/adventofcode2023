@@ -1,17 +1,11 @@
 struct Card {
-    id: i32,
     winning_numbers: Vec<i32>,
     my_numbers: Vec<i32>,
 }
 
 impl Card {
     fn new(input: &str) -> Self {
-        let mut nums = input.split(':');
-
-        let id_str = nums.next().unwrap();
-        let id: i32 = id_str.split(' ').last().unwrap().parse().unwrap();
-
-        let mut nums = nums.next().unwrap().split('|');
+        let mut nums = input.split(':').last().unwrap().split('|');
         let winning_numbers: Vec<i32> = nums
             .next()
             .unwrap()
@@ -31,7 +25,6 @@ impl Card {
             })
             .collect();
         Self {
-            id,
             winning_numbers,
             my_numbers,
         }
@@ -67,7 +60,6 @@ pub fn part2(input: &str) {
     for i in 0..cards.len() {
         let card = cards.get(i).unwrap();
         let card_copies = copies.get(i).unwrap().to_owned();
-        println!("Card {}", card.id);
         let mut matches = card.matches();
         while matches > 0 {
             copies[i + matches] += card_copies;
