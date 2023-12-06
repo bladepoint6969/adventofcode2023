@@ -1,8 +1,8 @@
-fn get_nums(input: &str) -> Vec<usize> {
+fn get_nums(input: &str) -> Vec<u64> {
     input.split(' ').filter_map(|s| s.parse().ok()).collect()
 }
 
-fn get_big_num(input: &str) -> usize {
+fn get_big_num(input: &str) -> u64 {
     input
         .chars()
         .filter(char::is_ascii_digit)
@@ -11,7 +11,7 @@ fn get_big_num(input: &str) -> usize {
         .unwrap()
 }
 
-fn possible_wins(time: usize, distance: usize) -> usize {
+fn possible_wins(time: u64, distance: u64) -> usize {
     (0..=time)
         .map(|speed| speed * (time - speed))
         .filter(|&travelled| travelled > distance)
