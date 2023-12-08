@@ -78,7 +78,7 @@ impl From<char> for Card {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum HandType {
-    HighCard = 1,
+    HighCard,
     Pair,
     TwoPair,
     ThreeOfAKind,
@@ -88,7 +88,7 @@ enum HandType {
 }
 
 trait HandVal {
-    fn hand_type(&self) -> HandType;
+    fn hand_value(&self) -> HandType;
 }
 
 #[derive(Debug)]
@@ -98,7 +98,7 @@ struct Hand<T> {
 }
 
 impl HandVal for Hand<WildCard> {
-    fn hand_type(&self) -> HandType {
+    fn hand_value(&self) -> HandType {
         let jokers = self
             .hand
             .iter()
@@ -149,7 +149,7 @@ impl HandVal for Hand<WildCard> {
 }
 
 impl HandVal for Hand<Card> {
-    fn hand_type(&self) -> HandType {
+    fn hand_value(&self) -> HandType {
         let mut card_map = HashMap::new();
 
         self.hand.iter().for_each(|card| {
@@ -221,7 +221,7 @@ where
     T: Ord,
 {
     fn cmp(&self, other: &Self) -> Ordering {
-        let type_cmp = self.hand_type().cmp(&other.hand_type());
+        let type_cmp = self.hand_value().cmp(&other.hand_value());
         if type_cmp != Ordering::Equal {
             return type_cmp;
         }
@@ -264,7 +264,7 @@ where
         .iter()
         .enumerate()
         .map(|(idx, hand)| {
-            println!("{hand:?} - {:?}", hand.hand_type());
+            println!("{hand:?} - {:?}", hand.hand_value());
             (idx + 1) * hand.bid
         })
         .sum();
@@ -298,8 +298,8 @@ mod tests {
         assert_eq!(hand_1, hand_3);
         assert_ne!(hand_1, hand_2);
 
-        assert_eq!(hand_1.hand_type(), HandType::Pair);
-        assert_eq!(hand_2.hand_type(), HandType::ThreeOfAKind);
+        assert_eq!(hand_1.hand_value(), HandType::Pair);
+        assert_eq!(hand_2.hand_value(), HandType::ThreeOfAKind);
 
         assert!(hand_2 > hand_1);
         assert!(hand_4 > hand_1);
