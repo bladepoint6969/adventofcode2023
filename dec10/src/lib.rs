@@ -53,7 +53,6 @@ struct Node {
     distance: usize,
     x: usize,
     y: usize,
-    inside: bool,
 }
 
 impl Node {
@@ -64,7 +63,6 @@ impl Node {
             distance: 0,
             x,
             y,
-            inside: false,
         }
     }
 
