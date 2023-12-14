@@ -2,5 +2,5 @@ use dec15::part2;
 
 fn main() {
     let input = include_str!("../../input.txt");
-    part2(input)
+    part2(input);
 }
