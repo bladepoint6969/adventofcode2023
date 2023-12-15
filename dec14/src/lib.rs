@@ -205,7 +205,6 @@ pub fn part1(input: &str) -> usize {
 pub fn part2(input: &str) -> usize {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
     let mut old_grids: Vec<Vec<Vec<Cell>>> = vec![grid.clone()];
-    let mut loads = vec![load(&grid)];
 
     for num in 0..1_000_000_000 {
         spin_cycle(&mut grid);
@@ -214,16 +213,15 @@ pub fn part2(input: &str) -> usize {
 
             let cycle_length = num - position + 1;
             let rem = 1_000_000_000 % cycle_length;
-            loads.push(load(&grid));
-            for i in (0..loads.len() - 1).rev() {
+            for i in (0..old_grids.len()).rev() {
                 if i % cycle_length == rem {
-                    println!("{}", loads[i]);
-                    return loads[i];
+                    let load = load(&old_grids[i]);
+                    println!("{load}");
+                    return load;
                 }
             }
         }
         old_grids.push(grid.clone());
-        loads.push(load(&grid));
     }
 
     let total_load: usize = load(&grid);
