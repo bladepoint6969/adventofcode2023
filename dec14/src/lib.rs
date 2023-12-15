@@ -234,7 +234,9 @@ pub fn part2(input: &str) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use crate::{build_grid, part1, part2, roll_east, roll_north, roll_south, roll_west, Cell, spin_cycle};
+    use crate::{
+        build_grid, part1, part2, roll_east, roll_north, roll_south, roll_west, spin_cycle, Cell,
+    };
 
     fn grid_to_string(grid: &[Vec<Cell>]) -> String {
         grid.iter()
@@ -287,6 +289,9 @@ mod tests {
 
         grid = build_grid(input);
         spin_cycle(&mut grid);
-        assert_eq!(grid, build_grid(include_str!("../input_simple_cycle_1_east.txt")));
+        assert_eq!(
+            grid,
+            build_grid(include_str!("../input_simple_cycle_1_east.txt"))
+        );
     }
 }
