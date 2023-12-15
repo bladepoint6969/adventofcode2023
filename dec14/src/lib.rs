@@ -155,6 +155,13 @@ fn roll_east(grid: &mut Vec<Vec<Cell>>) {
     }
 }
 
+fn grid_to_string(grid: &[Vec<Cell>]) -> String {
+    grid.iter()
+        .map(|row| row.iter().map(char::from).collect::<String>())
+        .collect::<Vec<String>>()
+        .join("\n")
+}
+
 fn build_grid(input: &str) -> Vec<Vec<Cell>> {
     input
         .lines()
@@ -194,22 +201,24 @@ pub fn part1(input: &str) -> usize {
 /// makes no assumptions about whether a cycle exists, or how long it can be
 pub fn part2(input: &str) -> usize {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
-    let mut old_grids: Vec<Vec<Vec<Cell>>> = vec![grid.clone()];
+    let mut old_grids: Vec<(md5::Digest, usize)> =
+        vec![(md5::compute(grid_to_string(&grid).as_bytes()), load(&grid))];
 
     for num in 1..=1_000_000_000 {
         spin_cycle(&mut grid);
-        if let Some(position) = old_grids.iter().position(|e| e == &grid) {
+        let grid_hash = md5::compute(grid_to_string(&grid).as_bytes());
+        if let Some(position) = old_grids.iter().position(|(hash, _)| hash == &grid_hash) {
             let cycle_length = num - position;
             let rem = 1_000_000_000 % cycle_length;
             for i in (0..old_grids.len()).rev() {
                 if i % cycle_length == rem {
-                    let load = load(&old_grids[i]);
+                    let load = old_grids[i].1;
                     println!("{load}");
                     return load;
                 }
             }
         }
-        old_grids.push(grid.clone());
+        old_grids.push((grid_hash, load(&grid)));
     }
 
     let total_load: usize = load(&grid);
@@ -221,15 +230,9 @@ pub fn part2(input: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use crate::{
-        build_grid, part1, part2, roll_east, roll_north, roll_south, roll_west, spin_cycle, Cell,
+        build_grid, grid_to_string, part1, part2, roll_east, roll_north, roll_south, roll_west,
+        spin_cycle,
     };
-
-    fn grid_to_string(grid: &[Vec<Cell>]) -> String {
-        grid.iter()
-            .map(|row| row.iter().map(char::from).collect::<String>())
-            .collect::<Vec<String>>()
-            .join("\n")
-    }
 
     #[test]
     fn test_roll_north() {
