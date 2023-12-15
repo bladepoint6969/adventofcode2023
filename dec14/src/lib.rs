@@ -190,6 +190,8 @@ pub fn part1(input: &str) -> usize {
     total_load
 }
 
+/// Warning: This has the potential to run out of memory at some point, as it
+/// makes no assumptions about whether a cycle exists, or how long it can be
 pub fn part2(input: &str) -> usize {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
     let mut old_grids: Vec<Vec<Vec<Cell>>> = vec![grid.clone()];
@@ -197,8 +199,6 @@ pub fn part2(input: &str) -> usize {
     for num in 0..1_000_000_000 {
         spin_cycle(&mut grid);
         if let Some(position) = old_grids.iter().position(|e| e == &grid) {
-            println!("cycle found at iteration {num}: {position}");
-
             let cycle_length = num - position + 1;
             let rem = 1_000_000_000 % cycle_length;
             for i in (0..old_grids.len()).rev() {
