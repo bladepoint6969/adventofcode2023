@@ -196,10 +196,10 @@ pub fn part2(input: &str) -> usize {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
     let mut old_grids: Vec<Vec<Vec<Cell>>> = vec![grid.clone()];
 
-    for num in 0..1_000_000_000 {
+    for num in 1..=1_000_000_000 {
         spin_cycle(&mut grid);
         if let Some(position) = old_grids.iter().position(|e| e == &grid) {
-            let cycle_length = num - position + 1;
+            let cycle_length = num - position;
             let rem = 1_000_000_000 % cycle_length;
             for i in (0..old_grids.len()).rev() {
                 if i % cycle_length == rem {
