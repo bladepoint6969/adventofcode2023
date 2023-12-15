@@ -176,22 +176,22 @@ fn spin_cycle(grid: &mut Vec<Vec<Cell>>) {
     roll_east(grid);
 }
 
-fn load(grid: &[Vec<Cell>]) -> usize {
+fn load(grid: &[Vec<Cell>]) -> u32 {
     grid.iter()
         .enumerate()
         .map(|(idx, row)| {
             let count = row.iter().filter(|cell| **cell == Cell::RoundRock).count();
-            count * (grid.len() - idx)
+            (count * (grid.len() - idx)) as u32
         })
         .sum()
 }
 
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str) -> u32 {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
 
     roll_north(&mut grid);
 
-    let total_load: usize = load(&grid);
+    let total_load = load(&grid);
 
     println!("{total_load}");
     total_load
@@ -199,9 +199,9 @@ pub fn part1(input: &str) -> usize {
 
 /// Warning: This has the potential to run out of memory at some point, as it
 /// makes no assumptions about whether a cycle exists, or how long it can be
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> u32 {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
-    let mut old_grids: Vec<(md5::Digest, usize)> =
+    let mut old_grids: Vec<(md5::Digest, u32)> =
         vec![(md5::compute(grid_to_string(&grid).as_bytes()), load(&grid))];
 
     for num in 1..=1_000_000_000 {
@@ -221,7 +221,7 @@ pub fn part2(input: &str) -> usize {
         old_grids.push((grid_hash, load(&grid)));
     }
 
-    let total_load: usize = load(&grid);
+    let total_load = load(&grid);
 
     println!("{total_load}");
     total_load
