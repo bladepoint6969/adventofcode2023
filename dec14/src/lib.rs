@@ -38,9 +38,6 @@ impl From<&Cell> for char {
 fn can_roll_north_to(grid: &[Vec<Cell>], x: usize, y: usize) -> Option<usize> {
     if grid[y][x] == Cell::RoundRock {
         let furthest = get_furthest_reachable_north(grid, x, y);
-        if furthest == y {
-            return None;
-        }
         Some(furthest)
     } else {
         None
@@ -50,9 +47,6 @@ fn can_roll_north_to(grid: &[Vec<Cell>], x: usize, y: usize) -> Option<usize> {
 fn can_roll_south_to(grid: &[Vec<Cell>], x: usize, y: usize) -> Option<usize> {
     if grid[y][x] == Cell::RoundRock {
         let furthest = get_furthest_reachable_south(grid, x, y);
-        if furthest == y {
-            return None;
-        }
         Some(furthest)
     } else {
         None
@@ -62,9 +56,6 @@ fn can_roll_south_to(grid: &[Vec<Cell>], x: usize, y: usize) -> Option<usize> {
 fn can_roll_west_to(row: &[Cell], x: usize) -> Option<usize> {
     if row[x] == Cell::RoundRock {
         let furthest = get_furthest_reachable_west(row, x);
-        if furthest == x {
-            return None;
-        }
         Some(furthest)
     } else {
         None
@@ -74,9 +65,6 @@ fn can_roll_west_to(row: &[Cell], x: usize) -> Option<usize> {
 fn can_roll_east_to(row: &[Cell], x: usize) -> Option<usize> {
     if row[x] == Cell::RoundRock {
         let furthest = get_furthest_reachable_east(row, x);
-        if furthest == x {
-            return None;
-        }
         Some(furthest)
     } else {
         None
