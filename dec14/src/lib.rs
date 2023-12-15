@@ -199,6 +199,8 @@ pub fn part1(input: &str) -> u32 {
 
 /// Warning: This has the potential to run out of memory at some point, as it
 /// makes no assumptions about whether a cycle exists, or how long it can be
+/// Cache can use as much as 20GB (1 billion * (16B hash + u32)), could be more
+/// during a vector reallocation
 pub fn part2(input: &str) -> u32 {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
     let mut old_grids: Vec<(md5::Digest, u32)> =
