@@ -174,24 +174,6 @@ fn build_grid(input: &str) -> Vec<Vec<Cell>> {
         .collect()
 }
 
-pub fn part1(input: &str) -> usize {
-    let mut grid: Vec<Vec<Cell>> = build_grid(input);
-
-    roll_north(&mut grid);
-
-    let total_load: usize = grid
-        .iter()
-        .enumerate()
-        .map(|(idx, row)| {
-            let count = row.iter().filter(|cell| **cell == Cell::RoundRock).count();
-            count * (grid.len() - idx)
-        })
-        .sum();
-
-    println!("{total_load}");
-    total_load
-}
-
 fn spin_cycle(grid: &mut Vec<Vec<Cell>>) {
     roll_north(grid);
     roll_west(grid);
@@ -208,6 +190,18 @@ fn load(grid: &[Vec<Cell>]) -> usize {
         })
         .sum()
 }
+
+pub fn part1(input: &str) -> usize {
+    let mut grid: Vec<Vec<Cell>> = build_grid(input);
+
+    roll_north(&mut grid);
+
+    let total_load: usize = load(&grid);
+
+    println!("{total_load}");
+    total_load
+}
+
 pub fn part2(input: &str) -> usize {
     let mut grid: Vec<Vec<Cell>> = build_grid(input);
     let mut old_grids: Vec<Vec<Vec<Cell>>> = vec![grid.clone()];
