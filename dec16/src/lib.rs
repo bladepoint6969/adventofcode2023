@@ -11,8 +11,8 @@ enum Direction {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum NodeType {
     Empty,
-    LeftDownMirror,
-    RightDownMirror,
+    LeftAngledMirror,
+    RightAngledMirror,
     VerticalSplitter,
     HorizontalSplitter,
 }
@@ -23,8 +23,8 @@ impl From<char> for NodeType {
             '.' => Self::Empty,
             '-' => Self::HorizontalSplitter,
             '|' => Self::VerticalSplitter,
-            '/' => Self::RightDownMirror,
-            '\\' => Self::LeftDownMirror,
+            '/' => Self::RightAngledMirror,
+            '\\' => Self::LeftAngledMirror,
             _ => unreachable!(),
         }
     }
@@ -45,16 +45,16 @@ impl NodeType {
             (VerticalSplitter, Direction::Left) | (VerticalSplitter, Direction::Right) => {
                 vec![Direction::Up, Direction::Down]
             }
-            (LeftDownMirror, Direction::Down) | (RightDownMirror, Direction::Up) => {
+            (LeftAngledMirror, Direction::Down) | (RightAngledMirror, Direction::Up) => {
                 vec![Direction::Right]
             }
-            (LeftDownMirror, Direction::Up) | (RightDownMirror, Direction::Down) => {
+            (LeftAngledMirror, Direction::Up) | (RightAngledMirror, Direction::Down) => {
                 vec![Direction::Left]
             }
-            (LeftDownMirror, Direction::Right) | (RightDownMirror, Direction::Left) => {
+            (LeftAngledMirror, Direction::Right) | (RightAngledMirror, Direction::Left) => {
                 vec![Direction::Down]
             }
-            (LeftDownMirror, Direction::Left) | (RightDownMirror, Direction::Right) => {
+            (LeftAngledMirror, Direction::Left) | (RightAngledMirror, Direction::Right) => {
                 vec![Direction::Up]
             }
         }
