@@ -127,6 +127,10 @@ impl CoOrds {
         };
         Some(Self { x: new_x, y: new_y })
     }
+
+    fn all(x: usize, y: usize) -> impl Iterator<Item = Self> {
+        (0..x).flat_map(move |this_x| (0..y).map(move |this_y| Self::new(this_x, this_y)))
+    }
 }
 
 fn visit_node_at(
@@ -199,21 +203,18 @@ pub fn part2(input: &str) -> usize {
 
     let mut energy_levels = BinaryHeap::new();
 
-    for x in 0..map[0].len() {
-        for y in 0..map.len() {
-            let coords = CoOrds::new(x, y);
-            if x == 0 {
-                energy_levels.push(energize_and_reset(coords, Direction::Right, &mut map));
-            }
-            if x + 1 == map[0].len() {
-                energy_levels.push(energize_and_reset(coords, Direction::Left, &mut map));
-            }
-            if y == 0 {
-                energy_levels.push(energize_and_reset(coords, Direction::Down, &mut map));
-            }
-            if y + 1 == map.len() {
-                energy_levels.push(energize_and_reset(coords, Direction::Up, &mut map));
-            }
+    for coords in CoOrds::all(map[0].len(), map.len()) {
+        if coords.x == 0 {
+            energy_levels.push(energize_and_reset(coords, Direction::Right, &mut map));
+        }
+        if coords.x + 1 == map[0].len() {
+            energy_levels.push(energize_and_reset(coords, Direction::Left, &mut map));
+        }
+        if coords.y == 0 {
+            energy_levels.push(energize_and_reset(coords, Direction::Down, &mut map));
+        }
+        if coords.y + 1 == map.len() {
+            energy_levels.push(energize_and_reset(coords, Direction::Up, &mut map));
         }
     }
 
