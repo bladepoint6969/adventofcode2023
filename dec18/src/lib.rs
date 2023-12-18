@@ -46,12 +46,17 @@ fn shoelace(points: &[(i64, i64)]) -> i64 {
 pub fn part1(input: &str) -> i64 {
     let re = Regex::new(r"^(?<direction>\w) (?<distance>\d+)").unwrap();
     let mut points = vec![(0, 0)];
-    let mut point_cnt = 0_i64;
+
+    // Shoelace algorithm doesn't count the perimeter as part of the area (in
+    // normal polygons this is fine since this will be 0), so we need to account
+    // for this ourselves
+    let mut perimeter = 0_i64;
+
     input.lines().for_each(|line| {
         let captures = re.captures(line).unwrap();
         let direction = Direction::new(&captures["direction"]);
         let distance: i64 = captures["distance"].parse().unwrap();
-        point_cnt += distance;
+        perimeter += distance;
         let (x_dir, y_dir) = direction.distance(distance);
         let (last_x, last_y) = points.last().unwrap();
 
@@ -60,7 +65,7 @@ pub fn part1(input: &str) -> i64 {
         points.push((x, y));
     });
 
-    let area = shoelace(&points[1..]) + point_cnt / 2 + 1;
+    let area = shoelace(&points[1..]) + perimeter / 2 + 1;
     println!("{area}");
     area
 }
@@ -68,7 +73,7 @@ pub fn part1(input: &str) -> i64 {
 pub fn part2(input: &str) -> i64 {
     let re = Regex::new(r"#(?<distance>[0-9a-f]{5})(?<direction>[0-9a-f])").unwrap();
     let mut points = vec![(0, 0)];
-    let mut point_cnt = 0_i64;
+    let mut perimeter = 0_i64;
     input.lines().for_each(|line| {
         let captures = re.captures(line).unwrap();
         let direction_hex = &captures["direction"];
@@ -77,7 +82,7 @@ pub fn part2(input: &str) -> i64 {
         let distance_hex = &captures["distance"];
         let distance: i64 = i64::from_str_radix(distance_hex, 16).unwrap();
 
-        point_cnt += distance;
+        perimeter += distance;
         let (x_dir, y_dir) = direction.distance(distance);
         let (last_x, last_y) = points.last().unwrap();
 
@@ -86,7 +91,7 @@ pub fn part2(input: &str) -> i64 {
         points.push((x, y));
     });
 
-    let area = shoelace(&points[1..]) + point_cnt / 2 + 1;
+    let area = shoelace(&points[1..]) + perimeter / 2 + 1;
     println!("{area}");
     area
 }
