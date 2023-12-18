@@ -38,7 +38,7 @@ fn shoelace(points: &[(i64, i64)]) -> i64 {
     }
 
     sum1 += points.last().unwrap().0 * points[0].1;
-    sum2 += points[0].0 * points.last().unwrap().1;
+    sum2 += points.last().unwrap().1 * points[0].0;
 
     (sum1 - sum2).abs() / 2
 }
