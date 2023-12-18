@@ -75,9 +75,8 @@ pub fn part2(input: &str) -> i64 {
         let direction = Direction::new(direction_hex);
 
         let distance_hex = &captures["distance"];
-        let distance: i64 =
-            i64::from_str_radix(distance_hex, 16).unwrap();
-            
+        let distance: i64 = i64::from_str_radix(distance_hex, 16).unwrap();
+
         point_cnt += distance;
         let (x_dir, y_dir) = direction.distance(distance);
         let (last_x, last_y) = points.last().unwrap();
