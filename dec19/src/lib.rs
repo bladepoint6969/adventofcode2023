@@ -64,20 +64,21 @@ impl RuleOutcome {
             s => Self::Workflow(s.to_string()),
         }
     }
-    fn unwrap(self) -> String {
-        match self {
-            Self::Workflow(s) => s,
-            _ => panic!(),
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
-struct Rule {
-    rating: Option<Rating>,
-    is_gt: bool,
-    test_val: u32,
-    outcome: RuleOutcome,
+enum Rule {
+    Unconditional(RuleOutcome),
+    Gt {
+        rating: Rating,
+        test_val: u32,
+        outcome: RuleOutcome,
+    },
+    Lt {
+        rating: Rating,
+        test_val: u32,
+        outcome: RuleOutcome,
+    },
 }
 
 impl Rule {
@@ -85,38 +86,52 @@ impl Rule {
         let mut split = val.split(':');
         let part_1 = split.next().unwrap();
         let Some(part_2) = split.next() else {
-            return Self {
-                rating: None,
-                is_gt: false,
-                test_val: 0,
-                outcome: RuleOutcome::new(part_1),
-            };
+            return Self::Unconditional(RuleOutcome::new(part_1));
         };
         let mut condition = part_1.chars();
         let rating = Rating::new(condition.next().unwrap());
         let is_gt = condition.next().unwrap() == '>';
         let test_val = condition.collect::<String>().parse().unwrap();
-        Self {
-            rating: Some(rating),
-            is_gt,
-            test_val,
-            outcome: RuleOutcome::new(part_2),
+        if is_gt {
+            Self::Gt {
+                rating,
+                test_val,
+                outcome: RuleOutcome::new(part_2),
+            }
+        } else {
+            Self::Lt {
+                rating,
+                test_val,
+                outcome: RuleOutcome::new(part_2),
+            }
         }
     }
 
     fn evaluate(&self, part: &Part) -> Option<&RuleOutcome> {
-        let Some(ref rating) = self.rating else {
-            return Some(&self.outcome);
-        };
-        let part_val = part.get_rating(rating);
-        let passed = match self.is_gt {
-            true => part_val > self.test_val,
-            false => part_val < self.test_val,
-        };
-        if passed {
-            Some(&self.outcome)
-        } else {
-            None
+        match self {
+            Self::Unconditional(outcome) => Some(outcome),
+            Self::Gt {
+                rating,
+                test_val,
+                outcome,
+            } => {
+                if part.get_rating(rating) > *test_val {
+                    Some(outcome)
+                } else {
+                    None
+                }
+            }
+            Self::Lt {
+                rating,
+                test_val,
+                outcome,
+            } => {
+                if part.get_rating(rating) < *test_val {
+                    Some(outcome)
+                } else {
+                    None
+                }
+            }
         }
     }
 }
@@ -204,12 +219,12 @@ pub fn part2(input: &str) -> u64 {
     let mut accepted: RangeVec = vec![];
 
     while let Some(range) = stack.pop() {
-        let (x, m, a, s, outcome, rule_key) = range;
-        if outcome == RuleOutcome::Accept {
+        let (x, m, a, s, current_outcome, rule_key) = range;
+        if current_outcome == RuleOutcome::Accept {
             accepted.push((x, m, a, s));
             continue;
         }
-        if outcome == RuleOutcome::Reject {
+        if current_outcome == RuleOutcome::Reject {
             continue;
         }
 
@@ -218,135 +233,67 @@ pub fn part2(input: &str) -> u64 {
             continue;
         }
 
-        let key = outcome.unwrap();
-        let rules = workflows.get(&key).unwrap();
+        let RuleOutcome::Workflow(ref key) = current_outcome else {
+            panic!("Somehow not a workflow");
+        };
+        let rules = workflows.get(key).unwrap();
         let rule = &rules[rule_key];
         match rule {
-            Rule {
-                rating: None,
-                outcome: RuleOutcome::Accept,
-                ..
-            } => {
+            Rule::Unconditional(RuleOutcome::Accept) => {
                 accepted.push((x, m, a, s));
                 continue;
             }
-            Rule {
-                rating: None,
-                outcome: RuleOutcome::Reject,
-                ..
-            } => {
+            Rule::Unconditional(RuleOutcome::Reject) => {
                 continue;
             }
-            Rule {
-                rating: None,
-                outcome,
-                ..
-            } => {
+            Rule::Unconditional(outcome) => {
                 stack.push((x, m, a, s, outcome.clone(), 0));
                 continue;
             }
-            Rule {
-                rating: Some(rating),
-                is_gt,
+            Rule::Gt {
+                rating,
                 test_val,
                 outcome,
-            } => {
-                if *is_gt {
-                    match rating {
-                        Rating::X => {
-                            stack.push(((test_val + 1, x.1), m, a, s, outcome.clone(), 0));
-                            stack.push((
-                                (x.0, *test_val),
-                                m,
-                                a,
-                                s,
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                        Rating::M => {
-                            stack.push((x, (test_val + 1, m.1), a, s, outcome.clone(), 0));
-                            stack.push((
-                                x,
-                                (m.0, *test_val),
-                                a,
-                                s,
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                        Rating::A => {
-                            stack.push((x, m, (test_val + 1, a.1), s, outcome.clone(), 0));
-                            stack.push((
-                                x,
-                                m,
-                                (a.0, *test_val),
-                                s,
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                        Rating::S => {
-                            stack.push((x, m, a, (test_val + 1, s.1), outcome.clone(), 0));
-                            stack.push((
-                                x,
-                                m,
-                                a,
-                                (s.0, *test_val),
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                    }
-                } else {
-                    match rating {
-                        Rating::X => {
-                            stack.push(((x.0, test_val - 1), m, a, s, outcome.clone(), 0));
-                            stack.push((
-                                (*test_val, x.1),
-                                m,
-                                a,
-                                s,
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                        Rating::M => {
-                            stack.push((x, (m.0, test_val - 1), a, s, outcome.clone(), 0));
-                            stack.push((
-                                x,
-                                (*test_val, m.1),
-                                a,
-                                s,
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                        Rating::A => {
-                            stack.push((x, m, (a.0, test_val - 1), s, outcome.clone(), 0));
-                            stack.push((
-                                x,
-                                m,
-                                (*test_val, a.1),
-                                s,
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                        Rating::S => {
-                            stack.push((x, m, a, (s.0, test_val - 1), outcome.clone(), 0));
-                            stack.push((
-                                x,
-                                m,
-                                a,
-                                (*test_val, s.1),
-                                RuleOutcome::Workflow(key),
-                                rule_key + 1,
-                            ));
-                        }
-                    }
+            } => match rating {
+                Rating::X => {
+                    stack.push(((test_val + 1, x.1), m, a, s, outcome.clone(), 0));
+                    stack.push(((x.0, *test_val), m, a, s, current_outcome, rule_key + 1));
                 }
-            }
+                Rating::M => {
+                    stack.push((x, (test_val + 1, m.1), a, s, outcome.clone(), 0));
+                    stack.push((x, (m.0, *test_val), a, s, current_outcome, rule_key + 1));
+                }
+                Rating::A => {
+                    stack.push((x, m, (test_val + 1, a.1), s, outcome.clone(), 0));
+                    stack.push((x, m, (a.0, *test_val), s, current_outcome, rule_key + 1));
+                }
+                Rating::S => {
+                    stack.push((x, m, a, (test_val + 1, s.1), outcome.clone(), 0));
+                    stack.push((x, m, a, (s.0, *test_val), current_outcome, rule_key + 1));
+                }
+            },
+            Rule::Lt {
+                rating,
+                test_val,
+                outcome,
+            } => match rating {
+                Rating::X => {
+                    stack.push(((x.0, test_val - 1), m, a, s, outcome.clone(), 0));
+                    stack.push(((*test_val, x.1), m, a, s, current_outcome, rule_key + 1));
+                }
+                Rating::M => {
+                    stack.push((x, (m.0, test_val - 1), a, s, outcome.clone(), 0));
+                    stack.push((x, (*test_val, m.1), a, s, current_outcome, rule_key + 1));
+                }
+                Rating::A => {
+                    stack.push((x, m, (a.0, test_val - 1), s, outcome.clone(), 0));
+                    stack.push((x, m, (*test_val, a.1), s, current_outcome, rule_key + 1));
+                }
+                Rating::S => {
+                    stack.push((x, m, a, (s.0, test_val - 1), outcome.clone(), 0));
+                    stack.push((x, m, a, (*test_val, s.1), current_outcome, rule_key + 1));
+                }
+            },
         }
     }
 
