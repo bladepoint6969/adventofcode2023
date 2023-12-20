@@ -113,11 +113,19 @@ struct Pulse<'a> {
 }
 
 impl<'a> Pulse<'a> {
-    fn new(source: &'a str, dest: &'a str, pulse: bool) -> Self {
+    const fn new(source: &'a str, dest: &'a str, pulse: bool) -> Self {
         Self {
             source,
             dest,
             pulse,
+        }
+    }
+
+    const fn initial() -> Self {
+        Self {
+            source: "button",
+            dest: "broadcaster",
+            pulse: false,
         }
     }
 }
@@ -151,9 +159,7 @@ fn initialize_modules(input: &str) -> HashMap<&str, Module> {
 fn push_button(modules: &mut HashMap<&str, Module>, pushes: u64) -> (u64, u64) {
     let mut high_pulses = 0;
     let mut low_pulses = 0;
-    let mut queue = VecDeque::new();
-
-    queue.push_back(Pulse::new("button", "broadcaster", false));
+    let mut queue = VecDeque::from([Pulse::initial()]);
 
     while let Some(transmission) = queue.pop_front() {
         if transmission.pulse {
