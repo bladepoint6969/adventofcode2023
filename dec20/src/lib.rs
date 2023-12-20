@@ -12,55 +12,51 @@ static USEFUL_2: OnceLock<u64> = OnceLock::new();
 static USEFUL_3: OnceLock<u64> = OnceLock::new();
 static USEFUL_4: OnceLock<u64> = OnceLock::new();
 
-enum Module {
+enum Module<'a> {
     FlipFlop {
-        label: String,
+        label: &'a str,
         state: bool,
-        connections: Vec<String>,
+        connections: Vec<&'a str>,
     },
     Conjunction {
-        label: String,
-        states: HashMap<String, bool>,
-        connections: Vec<String>,
+        label: &'a str,
+        states: HashMap<&'a str, bool>,
+        connections: Vec<&'a str>,
     },
     Broadcaster {
-        label: String,
-        connections: Vec<String>,
+        label: &'a str,
+        connections: Vec<&'a str>,
     },
 }
 
-impl Module {
-    fn new(label: &str, connections: Vec<String>) -> Self {
-        let stripped_label = label.replace(['%', '&'], "");
+impl<'a> Module<'a> {
+    fn new(label: &'a str, connections: Vec<&'a str>) -> Self {
         if label.starts_with('%') {
             Self::FlipFlop {
-                label: stripped_label,
+                label: label.strip_prefix('%').unwrap(),
                 state: false,
                 connections,
             }
         } else if label.starts_with('&') {
             Self::Conjunction {
-                label: stripped_label,
+                label: label.strip_prefix('&').unwrap(),
                 states: HashMap::new(),
                 connections,
             }
         } else {
-            Self::Broadcaster {
-                label: stripped_label,
-                connections,
-            }
+            Self::Broadcaster { label, connections }
         }
     }
 
-    fn label(&self) -> String {
+    fn label(&self) -> &'a str {
         match self {
-            Module::Broadcaster { label, .. } => label.clone(),
-            Module::Conjunction { label, .. } => label.clone(),
-            Module::FlipFlop { label, .. } => label.clone(),
+            Module::Broadcaster { label, .. } => label,
+            Module::Conjunction { label, .. } => label,
+            Module::FlipFlop { label, .. } => label,
         }
     }
 
-    fn connections(&self) -> &[String] {
+    fn connections(&self) -> &[&'a str] {
         match self {
             Module::Broadcaster { connections, .. } => connections,
             Module::Conjunction { connections, .. } => connections,
@@ -68,7 +64,7 @@ impl Module {
         }
     }
 
-    fn initialize_inputs(&mut self, inputs: Vec<String>) {
+    fn initialize_inputs(&mut self, inputs: Vec<&'a str>) {
         if let Self::Conjunction { states, .. } = self {
             for input in inputs {
                 states.insert(input, false);
@@ -76,15 +72,16 @@ impl Module {
         }
     }
 
-    fn process(&mut self, source: String, pulse: bool, queue: &mut VecDeque<PulseTransmission>) {
+    fn process(
+        &mut self,
+        source: &'a str,
+        pulse: bool,
+        queue: &mut VecDeque<PulseTransmission<'a>>,
+    ) {
         match self {
             Module::Broadcaster { label, connections } => {
                 for connection in connections {
-                    queue.push_back(PulseTransmission::new(
-                        label.clone(),
-                        connection.clone(),
-                        pulse,
-                    ));
+                    queue.push_back(PulseTransmission::new(label, connection, pulse));
                 }
             }
             Module::FlipFlop {
@@ -95,11 +92,7 @@ impl Module {
                 if !pulse {
                     *state = !*state;
                     for connection in connections {
-                        queue.push_back(PulseTransmission::new(
-                            label.clone(),
-                            connection.clone(),
-                            *state,
-                        ));
+                        queue.push_back(PulseTransmission::new(label, connection, *state));
                     }
                 }
             }
@@ -111,25 +104,21 @@ impl Module {
                 states.insert(source, pulse);
                 let to_send = states.values().filter(|v| **v).count() != states.len();
                 for connection in connections {
-                    queue.push_back(PulseTransmission::new(
-                        label.clone(),
-                        connection.clone(),
-                        to_send,
-                    ));
+                    queue.push_back(PulseTransmission::new(label, connection, to_send));
                 }
             }
         }
     }
 }
 
-struct PulseTransmission {
-    source: String,
-    dest: String,
+struct PulseTransmission<'a> {
+    source: &'a str,
+    dest: &'a str,
     pulse: bool,
 }
 
-impl PulseTransmission {
-    fn new(source: String, dest: String, pulse: bool) -> Self {
+impl<'a> PulseTransmission<'a> {
+    fn new(source: &'a str, dest: &'a str, pulse: bool) -> Self {
         Self {
             source,
             dest,
@@ -138,7 +127,7 @@ impl PulseTransmission {
     }
 }
 
-fn initialize_modules(input: &str) -> HashMap<String, Module> {
+fn initialize_modules(input: &str) -> HashMap<&str, Module> {
     let mut modules = HashMap::new();
     let mut inputs = HashMap::new();
 
@@ -146,15 +135,10 @@ fn initialize_modules(input: &str) -> HashMap<String, Module> {
     input.lines().for_each(|line| {
         let mut split = line.split(" -> ");
         let label = split.next().unwrap();
-        let connections: Vec<String> = split
-            .next()
-            .unwrap()
-            .split(", ")
-            .map(String::from)
-            .collect();
+        let connections: Vec<&str> = split.next().unwrap().split(", ").collect();
         let module = Module::new(label, connections);
         for input in module.connections() {
-            let input_list = inputs.entry(input.clone()).or_insert(vec![]);
+            let input_list = inputs.entry(*input).or_insert(vec![]);
             input_list.push(module.label());
         }
         modules.insert(module.label(), module);
@@ -169,16 +153,12 @@ fn initialize_modules(input: &str) -> HashMap<String, Module> {
     modules
 }
 
-fn push_button(modules: &mut HashMap<String, Module>, pushes: u64) -> (u64, u64) {
+fn push_button(modules: &mut HashMap<&str, Module>, pushes: u64) -> (u64, u64) {
     let mut high_pulses = 0;
     let mut low_pulses = 0;
     let mut queue = VecDeque::new();
 
-    queue.push_back(PulseTransmission::new(
-        "button".into(),
-        "broadcaster".into(),
-        false,
-    ));
+    queue.push_back(PulseTransmission::new("button", "broadcaster", false));
 
     while let Some(transmission) = queue.pop_front() {
         if transmission.pulse {
@@ -196,7 +176,7 @@ fn push_button(modules: &mut HashMap<String, Module>, pushes: u64) -> (u64, u64)
             }
             low_pulses += 1;
         }
-        if let Some(module) = modules.get_mut(&transmission.dest) {
+        if let Some(module) = modules.get_mut(transmission.dest) {
             module.process(transmission.source, transmission.pulse, &mut queue);
         }
     }
