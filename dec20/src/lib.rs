@@ -72,16 +72,11 @@ impl<'a> Module<'a> {
         }
     }
 
-    fn process(
-        &mut self,
-        source: &'a str,
-        pulse: bool,
-        queue: &mut VecDeque<PulseTransmission<'a>>,
-    ) {
+    fn process(&mut self, source: &'a str, pulse: bool, queue: &mut VecDeque<Pulse<'a>>) {
         match self {
             Module::Broadcaster { label, connections } => {
                 for connection in connections {
-                    queue.push_back(PulseTransmission::new(label, connection, pulse));
+                    queue.push_back(Pulse::new(label, connection, pulse));
                 }
             }
             Module::FlipFlop {
@@ -92,7 +87,7 @@ impl<'a> Module<'a> {
                 if !pulse {
                     *state = !*state;
                     for connection in connections {
-                        queue.push_back(PulseTransmission::new(label, connection, *state));
+                        queue.push_back(Pulse::new(label, connection, *state));
                     }
                 }
             }
@@ -104,20 +99,20 @@ impl<'a> Module<'a> {
                 states.insert(source, pulse);
                 let to_send = states.values().filter(|v| **v).count() != states.len();
                 for connection in connections {
-                    queue.push_back(PulseTransmission::new(label, connection, to_send));
+                    queue.push_back(Pulse::new(label, connection, to_send));
                 }
             }
         }
     }
 }
 
-struct PulseTransmission<'a> {
+struct Pulse<'a> {
     source: &'a str,
     dest: &'a str,
     pulse: bool,
 }
 
-impl<'a> PulseTransmission<'a> {
+impl<'a> Pulse<'a> {
     fn new(source: &'a str, dest: &'a str, pulse: bool) -> Self {
         Self {
             source,
@@ -158,7 +153,7 @@ fn push_button(modules: &mut HashMap<&str, Module>, pushes: u64) -> (u64, u64) {
     let mut low_pulses = 0;
     let mut queue = VecDeque::new();
 
-    queue.push_back(PulseTransmission::new("button", "broadcaster", false));
+    queue.push_back(Pulse::new("button", "broadcaster", false));
 
     while let Some(transmission) = queue.pop_front() {
         if transmission.pulse {
