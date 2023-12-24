@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use z3::{*, ast::Ast};
+use z3::{ast::Ast, *};
 
 const MIN_POS: f64 = 200000000000000.;
 const MAX_POS: f64 = 400000000000000.;
@@ -146,7 +146,7 @@ impl Hailstone {
             pz,
             vx,
             vy,
-            vz
+            vz,
         }
     }
 }
@@ -192,7 +192,7 @@ pub fn part1(input: &str) -> usize {
     count
 }
 
-pub fn part2(input: &str) -> i64{
+pub fn part2(input: &str) -> i64 {
     let hailstones = build_stones(input);
 
     let cfg = Config::new();
@@ -228,7 +228,6 @@ pub fn part2(input: &str) -> i64{
 
     println!("{sum}");
     sum
-
 }
 
 #[test]
